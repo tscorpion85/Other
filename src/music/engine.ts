@@ -16,9 +16,9 @@ export function createSession():SessionState{return{
 export function direct(state:SessionState,direction:Direction):SessionState{
  const n=structuredClone(state);
  if(direction==="keep"){n.kept.push({...n.motif,id:`kept-${n.kept.length+1}`,weight:3});n.motif.weight=Math.min(4,n.motif.weight+1)}
- if(direction==="more"){n.energy=clamp(n.energy+.15);n.tension=clamp(n.tension+.07)}
- if(direction==="less"){n.energy=clamp(n.energy-.18);n.tension=clamp(n.tension-.06)}
- if(direction==="change"){n.section=n.section==="b"?"a":"b";n.tension=clamp(n.tension+.12);n.motif=variation(n.motif,2+n.kept.length%2)}
+ if(direction==="more"){n.energy=clamp(n.energy+.18);n.tension=clamp(n.tension+.07);n.bpm=Math.min(126,n.bpm+4)}
+ if(direction==="less"){n.energy=clamp(n.energy-.20);n.tension=clamp(n.tension-.06);n.bpm=Math.max(84,n.bpm-4)}
+ if(direction==="change"){n.section=n.section==="b"?"a":"b";n.tension=clamp(n.tension+.16);n.bpm=n.section==="b"?Math.max(92,n.bpm-6):Math.min(122,n.bpm+6);n.motif=variation(n.motif,3+n.kept.length%2)}
  return n;
 }
 
