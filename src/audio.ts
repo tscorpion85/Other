@@ -1,73 +1,14 @@
-import type { NoteEvent } from "./music/types";
-
-export class AudioPerformer {
-  private ctx?: AudioContext;
-  private master?: GainNode;
-  private compressor?: DynamicsCompressorNode;
-  private startedAt = 0;
-  private beatOffset = 0;
-
-  async start(beat: number, bpm: number) {
-    this.ensure();
-    await this.ctx!.resume();
-    this.startedAt = this.ctx!.currentTime + 0.08;
-    this.beatOffset = beat;
-    this.bpm = bpm;
-  }
-
-  bpm = 104;
-
-  stop() {
-    this.ctx?.close();
-    this.ctx = undefined;
-    this.master = undefined;
-    this.compressor = undefined;
-  }
-
-  schedule(events: NoteEvent[]) {
-    if (!this.ctx) return;
-    for (const event of events) {
-      const when = this.startedAt + (event.beat - this.beatOffset) * 60 / this.bpm;
-      if (event.channel === "drums") this.drum(event.note, when, event.velocity);
-      else this.tone(event.note, when, event.duration * 60 / this.bpm, event.velocity, event.channel);
-    }
-  }
-
-  private ensure() {
-    if (this.ctx) return;
-    this.ctx = new AudioContext();
-    this.compressor = this.ctx.createDynamicsCompressor();
-    this.compressor.threshold.value = -18;
-    this.compressor.ratio.value = 4;
-    this.master = this.ctx.createGain();
-    this.master.gain.value = 0.72;
-    this.compressor.connect(this.master).connect(this.ctx.destination);
-  }
-
-  private tone(note: number, when: number, duration: number, velocity: number, channel: NoteEvent["channel"]) {
-    const ctx = this.ctx!, out = this.compressor!;
-    const osc = ctx.createOscillator(), gain = ctx.createGain(), filter = ctx.createBiquadFilter();
-    const hz = 440 * 2 ** ((note - 69) / 12);
-    osc.type = channel === "bass" ? "sine" : channel === "lead" ? "triangle" : "sine";
-    osc.frequency.value = hz;
-    filter.type = "lowpass";
-    filter.frequency.value = channel === "bass" ? 500 : 2400;
-    gain.gain.setValueAtTime(0.0001, when);
-    gain.gain.exponentialRampToValueAtTime(Math.max(.02, velocity * .22), when + .012);
-    gain.gain.exponentialRampToValueAtTime(.0001, when + Math.max(.08, duration));
-    osc.connect(filter).connect(gain).connect(out);
-    osc.start(when); osc.stop(when + duration + .03);
-  }
-
-  private drum(note: number, when: number, velocity: number) {
-    const ctx = this.ctx!, out = this.compressor!;
-    if (note === 36) {
-      const o=ctx.createOscillator(),g=ctx.createGain(); o.frequency.setValueAtTime(130,when);o.frequency.exponentialRampToValueAtTime(42,when+.14);
-      g.gain.setValueAtTime(velocity*.55,when);g.gain.exponentialRampToValueAtTime(.0001,when+.18);o.connect(g).connect(out);o.start(when);o.stop(when+.2);
-    } else {
-      const length=Math.floor(ctx.sampleRate*.09),buffer=ctx.createBuffer(1,length,ctx.sampleRate),data=buffer.getChannelData(0);
-      for(let i=0;i<length;i++)data[i]=(Math.random()*2-1)*Math.exp(-i/(ctx.sampleRate*.018));
-      const src=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),g=ctx.createGain();src.buffer=buffer;filter.type="highpass";filter.frequency.value=note===38?1200:5200;g.gain.value=velocity*.28;src.connect(filter).connect(g).connect(out);src.start(when);
-    }
-  }
+import type {NoteEvent} from "./music/types";
+export class AudioPerformer{
+ private ctx?:AudioContext;private master?:GainNode;private comp?:DynamicsCompressorNode;private startedAt=0;private beatOffset=0;bpm=104;
+ async start(beat:number,bpm:number){this.ensure();await this.ctx!.resume();this.startedAt=this.ctx!.currentTime+.08;this.beatOffset=beat;this.bpm=bpm}
+ setTempo(bpm:number){this.bpm=bpm} stop(){this.ctx?.close();this.ctx=undefined}
+ schedule(events:NoteEvent[]){if(!this.ctx)return;for(const e of events){const t=this.startedAt+(e.beat-this.beatOffset)*60/this.bpm;if(e.channel==="drums")this.drum(e.note,t,e.velocity);else if(e.channel==="bass")this.bass(e.note,t,e.duration*60/this.bpm,e.velocity);else if(e.channel==="lead")this.pluck(e.note,t,e.duration*60/this.bpm,e.velocity);else this.pad(e.note,t,e.duration*60/this.bpm,e.velocity)}}
+ private ensure(){if(this.ctx)return;const c=this.ctx=new AudioContext();this.comp=c.createDynamicsCompressor();this.comp.threshold.value=-16;this.comp.ratio.value=4;this.master=c.createGain();this.master.gain.value=.95;this.comp.connect(this.master).connect(c.destination)}
+ private env(g:GainNode,t:number,a:number,d:number,p:number){g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(p,t+a);g.gain.exponentialRampToValueAtTime(.0001,t+d)}
+ private bass(n:number,t:number,d:number,v:number){const c=this.ctx!,f=440*2**((n-69)/12),fl=c.createBiquadFilter(),g=c.createGain();fl.type="lowpass";fl.frequency.setValueAtTime(900,t);fl.frequency.exponentialRampToValueAtTime(190,t+Math.max(.12,d));fl.Q.value=5;for(const [type,det,m] of [["sawtooth",0,.65],["square",-7,.12],["sine",0,.3]] as const){const o=c.createOscillator(),x=c.createGain();o.type=type;o.frequency.value=f;o.detune.value=det;x.gain.value=m;o.connect(x).connect(fl);o.start(t);o.stop(t+d+.04)}this.env(g,t,.008,Math.max(.15,d),v*.32);fl.connect(g).connect(this.comp!)}
+ private pluck(n:number,t:number,d:number,v:number){const c=this.ctx!,f=440*2**((n-69)/12),fl=c.createBiquadFilter(),g=c.createGain();fl.type="lowpass";fl.frequency.setValueAtTime(4300,t);fl.frequency.exponentialRampToValueAtTime(650,t+Math.max(.15,d));fl.Q.value=7;for(const [r,m] of [[1,.7],[2.01,.22],[3.02,.08]]){const o=c.createOscillator(),x=c.createGain();o.type=r===1?"triangle":"sine";o.frequency.value=f*r;x.gain.value=m;o.connect(x).connect(fl);o.start(t);o.stop(t+d+.08)}this.env(g,t,.004,Math.max(.12,d),v*.28);fl.connect(g).connect(this.comp!)}
+ private pad(n:number,t:number,d:number,v:number){const c=this.ctx!,f=440*2**((n-69)/12),fl=c.createBiquadFilter(),g=c.createGain();fl.type="lowpass";fl.frequency.value=1200;for(const det of[-9,0,9]){const o=c.createOscillator(),x=c.createGain();o.type="sawtooth";o.frequency.value=f;o.detune.value=det;x.gain.value=.15;o.connect(x).connect(fl);o.start(t);o.stop(t+d+.2)}g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v*.075,t+.08);g.gain.exponentialRampToValueAtTime(.0001,t+d+.12);fl.connect(g).connect(this.comp!)}
+ private noise(t:number,len:number,gain:number,hp:number){const c=this.ctx!,b=c.createBuffer(1,Math.ceil(c.sampleRate*len),c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.exp(-i/(c.sampleRate*(len*.22)));const s=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();s.buffer=b;f.type="highpass";f.frequency.value=hp;g.gain.value=gain;s.connect(f).connect(g).connect(this.comp!);s.start(t)}
+ private drum(n:number,t:number,v:number){const c=this.ctx!;if(n===36){const o=c.createOscillator(),g=c.createGain();o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(45,t+.12);this.env(g,t,.002,.2,v*.72);o.connect(g).connect(this.comp!);o.start(t);o.stop(t+.22);this.noise(t,.025,v*.08,1800)}else if(n===38){this.noise(t,.16,v*.42,900);const o=c.createOscillator(),g=c.createGain();o.type="triangle";o.frequency.setValueAtTime(205,t);o.frequency.exponentialRampToValueAtTime(125,t+.09);this.env(g,t,.002,.11,v*.22);o.connect(g).connect(this.comp!);o.start(t);o.stop(t+.12)}else this.noise(t,n===46?.16:.045,v*(n===46?.14:.09),5200)}
 }
