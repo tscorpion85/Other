@@ -1,0 +1,29 @@
+export type Direction = "keep" | "more" | "less" | "change";
+
+export type NoteEvent = {
+  beat: number;
+  duration: number;
+  note: number;
+  velocity: number;
+  channel: "drums" | "bass" | "harmony" | "lead";
+};
+
+export type Motif = {
+  id: string;
+  degrees: number[];
+  rhythm: number[];
+  weight: number;
+};
+
+export type SessionState = {
+  bpm: number;
+  beat: number;
+  section: string;
+  energy: number;
+  tension: number;
+  rootMidi: number;
+  scale: number[];
+  motif: Motif;
+  kept: Motif[];
+  events: NoteEvent[];
+};
