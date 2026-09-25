@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OTHER Alpha</title><link rel="stylesheet" href="./src/app.css"></head>
+<body>
+<main class="shell">
+  <header><div><div class="eyebrow">AI MUSICIAN / ALPHA 0.1</div><h1>OTHER</h1><p>One continuous performance. Direct it; don't regenerate it.</p></div><div id="status" class="status">READY</div></header>
+  <section class="transport">
+    <button id="play" class="primary">▶ PLAY</button><button id="stop" disabled>■ STOP</button>
+    <div><span class="label">SECTION</span><strong id="section">intro</strong></div>
+    <div><span class="label">TEMPO</span><strong>104 BPM</strong></div>
+    <div><span class="label">BAR</span><strong id="bar">1</strong></div>
+  </section>
+  <section class="direct">
+    <button id="keep"><b>★ KEEP THAT</b><span>Remember the idea</span></button>
+    <button id="more"><b>▲ MORE</b><span>Develop + intensify</span></button>
+    <button id="less"><b>▼ LESS</b><span>Strip it back</span></button>
+    <button id="change"><b>↝ CHANGE</b><span>Go somewhere new</span></button>
+  </section>
+  <section class="meters"><div><span>ENERGY</span><progress id="energy" max="1" value=".35"></progress></div><div><span>TENSION</span><progress id="tension" max="1" value=".25"></progress></div></section>
+  <section class="memory"><div><span class="label">CURRENT MOTIF</span><div id="motif">0 · 2 · 4 · 3</div></div><div><span class="label">KEPT MOMENTS</span><div id="kept">0</div></div><p id="message">Press Play. OTHER will keep moving until you stop it.</p></section>
+</main><script type="module" src="./src/app.ts"></script></body></html>
