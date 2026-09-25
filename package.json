@@ -9,6 +9,9 @@
     "typecheck": "tsc --noEmit",
     "preview": "vite preview"
   },
+  "dependencies": {
+    "smplr": "^0.18.0"
+  },
   "devDependencies": {
     "typescript": "^5.9.2",
     "vite": "^7.1.7"
